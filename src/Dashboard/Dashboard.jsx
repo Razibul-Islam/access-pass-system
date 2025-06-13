@@ -1,5 +1,5 @@
 import { Plus, Ticket, CheckCircle } from "lucide-react";
-import StatsCards from "./Components/StatesCard";
+import StatsCards from "./Components/APS/StatesCard";
 
 const MainDashboard = ({ onCreateEvent, events }) => {
   const defaultEvents = [

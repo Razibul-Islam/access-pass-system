@@ -1,7 +1,11 @@
 import { Search, Bell, Wallet, ChevronDown, Ticket } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useASPToken } from "../../../hooks/useAPSToken";
 
-const Header = ({ onNotificationClick, onWalletClick, onProfileClick }) => {
+const Header = ({ onNotificationClick, onProfileClick }) => {
+  const { tokenInfo, balance } = useASPToken();
+  const [walletOpen, setWalletOpen] = useState(false);
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
       <div className="flex items-center justify-between">
@@ -40,11 +44,19 @@ const Header = ({ onNotificationClick, onWalletClick, onProfileClick }) => {
           </button>
 
           <button
-            onClick={onWalletClick}
+            onClick={() => setWalletOpen(!walletOpen)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <Wallet size={20} />
           </button>
+          {walletOpen && (
+            <div className="absolute right-24 mt-2 top-12 w-fit bg-white text-gray-800 rounded shadow-lg p-4 z-10">
+              <p className="text-sm text-gray-500">Balance</p>
+              <p className="font-semibold text-lg">
+                {balance} {tokenInfo?.symbol || ""}
+              </p>
+            </div>
+          )}
 
           <div
             onClick={onProfileClick}

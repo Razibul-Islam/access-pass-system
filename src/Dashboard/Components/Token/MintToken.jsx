@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 
 const MintToken = () => {
-  const { mint } = useASPToken();
+  const { mint } = useAPSToken();
   const [amount, setAmount] = useState("");
 
   const handleMint = async () => {

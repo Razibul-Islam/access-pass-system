@@ -1,10 +1,12 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useAccessPassSystem } from "../hooks/useAccessPassSystem";
 
 const ComContx = createContext();
 
 export default function ComContext({ children }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [events, setEvents] = useState([]);
+  const [Events, setEvents] = useState([]);
+  const { createEvent, getAllEvents } = useAccessPassSystem();
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);
@@ -14,17 +16,23 @@ export default function ComContext({ children }) {
     setShowCreateModal(false);
   };
 
-  const handleSubmitEvent = (eventData) => {
-    const newEvent = {
-      ...eventData,
-      id: Date.now(),
-      soldPasses: 0,
-      status: "active",
-      image:
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop",
-    };
-    setEvents((prev) => [...prev, newEvent]);
+  useEffect(() => {
+    getAllEvents()
+      .then((data) => setEvents(data))
+      .catch((err) => console.log(err));
+  }, [getAllEvents]);
+
+  const handleSubmitEvent = async (eventData) => {
+    await createEvent(
+      eventData.price,
+      eventData.duration,
+      eventData.maxPasses,
+      eventData.image
+    );
     setShowCreateModal(false);
+    console.log(eventData);
+
+    return Promise.resolve();
   };
 
   const handleViewEvent = (event) => {
@@ -49,7 +57,7 @@ export default function ComContext({ children }) {
 
   const values = {
     showCreateModal,
-    events,
+    Events,
     handleCreateEvent,
     handleCloseModal,
     handleSubmitEvent,

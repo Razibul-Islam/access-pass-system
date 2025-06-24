@@ -335,6 +335,70 @@ export const APS_ABI = [
     inputs: [
       {
         internalType: "address",
+        name: "manager",
+        type: "address",
+      },
+    ],
+    name: "addEventManager",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "eventName",
+        type: "string",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_price",
+        type: "uint256[3]",
+      },
+      {
+        internalType: "uint256",
+        name: "duration",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_maxpass",
+        type: "uint256[3]",
+      },
+      {
+        internalType: "string",
+        name: "ipfsHash",
+        type: "string",
+      },
+      {
+        internalType: "string[3]",
+        name: "passTypeNames",
+        type: "string[3]",
+      },
+    ],
+    name: "createEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "deactivateEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_paymentToken",
         type: "address",
       },
@@ -346,6 +410,36 @@ export const APS_ABI = [
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "EventNotActive",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidEventId",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "InvalidPassType",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotAdmin",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotEventManager",
+    type: "error",
   },
   {
     inputs: [
@@ -370,6 +464,11 @@ export const APS_ABI = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "PassDoesNotExist",
+    type: "error",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -380,9 +479,21 @@ export const APS_ABI = [
       },
       {
         indexed: false,
-        internalType: "uint256",
-        name: "price",
-        type: "uint256",
+        internalType: "string",
+        name: "eventName",
+        type: "string",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[3]",
+        name: "prices",
+        type: "uint256[3]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[3]",
+        name: "maxPasses",
+        type: "uint256[3]",
       },
       {
         indexed: false,
@@ -444,9 +555,9 @@ export const APS_ABI = [
       },
       {
         indexed: false,
-        internalType: "uint256",
+        internalType: "uint256[3]",
         name: "newPrice",
-        type: "uint256",
+        type: "uint256[3]",
       },
       {
         indexed: false,
@@ -456,13 +567,36 @@ export const APS_ABI = [
       },
       {
         indexed: false,
-        internalType: "uint256",
+        internalType: "uint256[3]",
         name: "newMaxPasses",
-        type: "uint256",
+        type: "uint256[3]",
       },
     ],
     name: "EventUpdated",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "additionalTime",
+        type: "uint256",
+      },
+    ],
+    name: "extendPass",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
     anonymous: false,
@@ -500,8 +634,20 @@ export const APS_ABI = [
       },
       {
         indexed: false,
+        internalType: "enum PassManagement.PassType",
+        name: "passType",
+        type: "uint8",
+      },
+      {
+        indexed: false,
         internalType: "uint256",
         name: "expiry",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
         type: "uint256",
       },
     ],
@@ -598,6 +744,12 @@ export const APS_ABI = [
         name: "eventId",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "enum PassManagement.PassType",
+        name: "passType",
+        type: "uint8",
+      },
     ],
     name: "PaymentReceived",
     type: "event",
@@ -641,503 +793,16 @@ export const APS_ABI = [
     type: "event",
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "oldTreasury",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newTreasury",
-        type: "address",
-      },
-    ],
-    name: "TreasuryUpdated",
-    type: "event",
-  },
-  {
-    inputs: [],
-    name: "MAX_DURATION",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_IPFS_HASH_LENGTH",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MAX_PASSES_PER_EVENT",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MIN_DURATION",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "MIN_IPFS_HASH_LENGTH",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "manager",
-        type: "address",
-      },
-    ],
-    name: "addEventManager",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "price",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "duration",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "maxpass",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "ipfsHash",
-        type: "string",
-      },
-    ],
-    name: "createEvent",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "uint256",
         name: "eventId",
         type: "uint256",
       },
-    ],
-    name: "deactivateEvent",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "eventManagers",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "eventPassCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "eventPassHolders",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "events",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "price",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "duration",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "maxPasses",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "ipfsHash",
-        type: "string",
-      },
-      {
-        internalType: "bool",
-        name: "active",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "additionalTime",
-        type: "uint256",
-      },
-    ],
-    name: "extendPass",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getContractBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "getEventDetails",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "uint256",
-            name: "price",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "duration",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "maxPasses",
-            type: "uint256",
-          },
-          {
-            internalType: "string",
-            name: "ipfsHash",
-            type: "string",
-          },
-          {
-            internalType: "bool",
-            name: "active",
-            type: "bool",
-          },
-        ],
-        internalType: "struct AccessPassSystem.EventData",
-        name: "",
-        type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "getPassExpiry",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "getPassesByEvent",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "",
-        type: "address[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-    ],
-    name: "getUserActivePassCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-    ],
-    name: "getUserPasses",
-    outputs: [
-      {
-        components: [
-          {
-            internalType: "bool",
-            name: "active",
-            type: "bool",
-          },
-          {
-            internalType: "uint256",
-            name: "expiry",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "eventId",
-            type: "uint256",
-          },
-          {
-            internalType: "string",
-            name: "accessLevel",
-            type: "string",
-          },
-          {
-            internalType: "bool",
-            name: "exists",
-            type: "bool",
-          },
-        ],
-        internalType: "struct AccessPassSystem.PassData[]",
-        name: "userPassesArray",
-        type: "tuple[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "isPassValid",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "nextEventId",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "paymentToken",
-    outputs: [
-      {
-        internalType: "contract IERC20",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
+        internalType: "uint8",
+        name: "passType",
+        type: "uint8",
       },
     ],
     name: "purchasePass",
@@ -1236,6 +901,319 @@ export const APS_ABI = [
     type: "function",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "oldTreasury",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newTreasury",
+        type: "address",
+      },
+    ],
+    name: "TreasuryUpdated",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_price",
+        type: "uint256[3]",
+      },
+      {
+        internalType: "uint256",
+        name: "_duration",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_maxpasses",
+        type: "uint256[3]",
+      },
+    ],
+    name: "updateEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getContractBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "getEventDetails",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256[3]",
+            name: "price",
+            type: "uint256[3]",
+          },
+          {
+            internalType: "uint256",
+            name: "duration",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256[3]",
+            name: "maxPasses",
+            type: "uint256[3]",
+          },
+          {
+            internalType: "string",
+            name: "ipfsHash",
+            type: "string",
+          },
+          {
+            internalType: "bool",
+            name: "active",
+            type: "bool",
+          },
+          {
+            internalType: "string",
+            name: "eventName",
+            type: "string",
+          },
+          {
+            internalType: "string[3]",
+            name: "passTypeNames",
+            type: "string[3]",
+          },
+        ],
+        internalType: "struct PassManagement.EventData",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "getPassExpiry",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "getPassTypesInfo",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "uint256",
+            name: "price",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "maxPasses",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "soldPasses",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "available",
+            type: "bool",
+          },
+        ],
+        internalType: "struct PassManagement.PassTypeInfo[3]",
+        name: "",
+        type: "tuple[3]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getUserActivePassCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getUserPasses",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "uint256",
+            name: "eventId",
+            type: "uint256",
+          },
+          {
+            internalType: "enum PassManagement.PassType",
+            name: "accessLevel",
+            type: "uint8",
+          },
+          {
+            internalType: "uint256",
+            name: "expiry",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "active",
+            type: "bool",
+          },
+          {
+            internalType: "bool",
+            name: "exists",
+            type: "bool",
+          },
+          {
+            internalType: "uint256",
+            name: "purchaseTime",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct PassManagement.UserPassDetails[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "isPassValid",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "owner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "paymentToken",
+    outputs: [
+      {
+        internalType: "contract IERC20",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "treasury",
     outputs: [
@@ -1246,104 +1224,6 @@ export const APS_ABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_price",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_duration",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "_maxpasses",
-        type: "uint256",
-      },
-    ],
-    name: "updateEvent",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "userPassCount",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "userPasses",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "active",
-        type: "bool",
-      },
-      {
-        internalType: "uint256",
-        name: "expiry",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "accessLevel",
-        type: "string",
-      },
-      {
-        internalType: "bool",
-        name: "exists",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawFunds",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];

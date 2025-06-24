@@ -1,29 +1,14 @@
 import { Plus, Ticket, CheckCircle } from "lucide-react";
 import StatsCards from "./Components/APS/StatesCard";
+import { UseEvents } from "../hooks/backend";
 
 const MainDashboard = ({ onCreateEvent, events }) => {
-  const defaultEvents = [
-    {
-      id: 1,
-      name: "Tech Conference 2024",
-      startDate: "2024-07-15",
-      price: 299,
-      soldPasses: 750,
-      image:
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Music Festival Summer",
-      startDate: "2024-08-10",
-      price: 450,
-      soldPasses: 3200,
-      image:
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=250&fit=crop",
-    },
-  ];
+  const { bevents } = UseEvents();
 
-  const eventsList = events || defaultEvents;
+  const margedEvents = events.map((item, index) => ({
+    ...item,
+    ...bevents[index],
+  }));
 
   return (
     <div className="space-y-8">
@@ -73,13 +58,13 @@ const MainDashboard = ({ onCreateEvent, events }) => {
             Upcoming Events
           </h3>
           <div className="space-y-4">
-            {eventsList.slice(0, 3).map((event) => (
+            {margedEvents.slice(0, 3).map((event) => (
               <div
                 key={event.id}
                 className="flex items-center space-x-4 p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
               >
                 <img
-                  src={event.image}
+                  src={`https://ipfs.io/ipfs/${event.ipfsHash}`}
                   alt={event.name}
                   className="w-12 h-12 rounded-lg object-cover"
                 />
@@ -88,7 +73,9 @@ const MainDashboard = ({ onCreateEvent, events }) => {
                   <p className="text-sm text-gray-500">{event.startDate}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-gray-900">${event.price}</p>
+                  <p className="font-medium text-gray-900">
+                    {event.priceFormatted} APS
+                  </p>
                   <p className="text-sm text-gray-500">
                     {event.soldPasses} sold
                   </p>

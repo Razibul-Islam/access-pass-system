@@ -1,7 +1,7 @@
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 
 const Balance = () => {
-  const { balance, tokenInfo } = useASPToken();
+  const { balance, tokenInfo } = useAPSToken();
 
   return (
     <div className="bg-white shadow p-6 rounded-2xl w-full">

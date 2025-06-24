@@ -1,5 +1,6 @@
 import { Plus, Filter } from "lucide-react";
 import EventCard from "./EventCard";
+import { UseEvents } from "../../../hooks/backend.jsx";
 
 const EventContent = ({
   events,
@@ -8,38 +9,15 @@ const EventContent = ({
   onEditEvent,
   onBuyPass,
 }) => {
-  const defaultEvents = [
-    {
-      id: 1,
-      name: "Tech Conference 2024",
-      description: "Annual technology conference featuring industry leaders",
-      price: 299,
-      duration: "3 days",
-      maxPasses: 1000,
-      soldPasses: 750,
-      status: "active",
-      startDate: "2024-07-15",
-      endDate: "2024-07-17",
-      image:
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=250&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Music Festival Summer",
-      description: "Three-day music festival with top artists",
-      price: 450,
-      duration: "3 days",
-      maxPasses: 5000,
-      soldPasses: 3200,
-      status: "active",
-      startDate: "2024-08-10",
-      endDate: "2024-08-12",
-      image:
-        "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=250&fit=crop",
-    },
-  ];
+  const { bevents } = UseEvents();
+  // const margedEvents = events.map((item, index) =>
+  //   Object.assign({}, item, bevents[index])
+  // );
 
-  const eventsList = defaultEvents || events;
+  const margedEvents = events.map((item, index) => ({
+    ...item,
+    ...bevents[index],
+  }));
 
   return (
     <div className="space-y-6">
@@ -61,7 +39,7 @@ const EventContent = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {eventsList.map((event) => (
+        {margedEvents?.map((event) => (
           <EventCard
             key={event.id}
             event={event}

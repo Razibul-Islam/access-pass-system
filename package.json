@@ -2,7 +2,6 @@
   "name": "decentralized-access-pass-system",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,6 +12,7 @@
     "@openzeppelin/contracts": "^5.3.0",
     "@tailwindcss/vite": "^4.1.8",
     "dotenv": "^16.5.0",
+    "ipfs-http-client": "^60.0.1",
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

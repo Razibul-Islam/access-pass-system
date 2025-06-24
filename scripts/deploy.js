@@ -8,29 +8,47 @@ async function main() {
   // Step 1: Deploy ERC20 Token (APS) first
   const erc20Factory = await hre.ethers.getContractFactory("APS");
   console.log("ERC20 contract Deploying...");
-
-  // Actually deploy the contract (you were missing this step!)
   const erc20Contract = await erc20Factory.deploy();
-
   await erc20Contract.waitForDeployment();
   const ercDeployAddress = await erc20Contract.getAddress();
   console.log("✅ ERC20 Token deployed to:", ercDeployAddress);
 
-  // Step 2: Deploy AccessPassSystem with ERC20 address
-  const APSContractFactory = await hre.ethers.getContractFactory(
-    "AccessPassSystem"
+  // Step 2: Deploy required libraries
+  const PassManagementFactory = await hre.ethers.getContractFactory(
+    "PassManagement"
   );
-  console.log("Access Pass System Contract Deploying...");
+  const passManagementLib = await PassManagementFactory.deploy();
+  await passManagementLib.waitForDeployment();
+  const passManagementAddress = await passManagementLib.getAddress();
+  console.log("📚 PassManagement deployed at:", passManagementAddress);
 
-  // Deploy AccessPassSystem with the ERC20 address as constructor parameter
+  const PassValidationFactory = await hre.ethers.getContractFactory(
+    "PassValidation"
+  );
+  const passValidationLib = await PassValidationFactory.deploy();
+  await passValidationLib.waitForDeployment();
+  const passValidationAddress = await passValidationLib.getAddress();
+  console.log("📚 PassValidation deployed at:", passValidationAddress);
+
+  // Step 3: Deploy AccessPassSystem with libraries linked
+  const APSContractFactory = await hre.ethers.getContractFactory(
+    "AccessPassSystem",
+    {
+      libraries: {
+        "contracts/PassManagement.sol:PassManagement": passManagementAddress,
+        "contracts/PassValidation.sol:PassValidation": passValidationAddress,
+      },
+    }
+  );
+
+  console.log("Access Pass System Contract Deploying...");
   const APSContract = await APSContractFactory.deploy(
-    ercDeployAddress, // These are constructor parameter
+    ercDeployAddress,
     WalletAddress
   );
 
   await APSContract.waitForDeployment();
   const APSContractAddress = await APSContract.getAddress();
-
   console.log("✅ Access Pass System deployed to:", APSContractAddress);
 
   // Final summary

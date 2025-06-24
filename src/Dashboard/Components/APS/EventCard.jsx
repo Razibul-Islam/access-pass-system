@@ -7,7 +7,7 @@ const EventCard = ({ event, onView, onEdit, onBuyPass }) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
       <div className="relative">
         <img
-          src={event.image}
+          src={`https://ipfs.io/ipfs/${event.ipfsHash}`}
           alt={event.name}
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -19,7 +19,7 @@ const EventCard = ({ event, onView, onEdit, onBuyPass }) => {
                 : "bg-gray-100 text-gray-800"
             }`}
           >
-            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+            {event.active && "Active"}
           </span>
         </div>
       </div>
@@ -35,7 +35,9 @@ const EventCard = ({ event, onView, onEdit, onBuyPass }) => {
           </div>
           <div className="flex items-center space-x-2 text-gray-500">
             <Clock size={16} />
-            <span className="text-sm">{event.duration}</span>
+            <span className="text-sm">
+              {(event.duration / 86400).toFixed(2)} days
+            </span>
           </div>
         </div>
 
@@ -55,7 +57,9 @@ const EventCard = ({ event, onView, onEdit, onBuyPass }) => {
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-gray-900">${event.price}</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {event.priceFormatted} APS
+          </div>
           <div className="flex space-x-2">
             <button
               onClick={() => onView(event)}

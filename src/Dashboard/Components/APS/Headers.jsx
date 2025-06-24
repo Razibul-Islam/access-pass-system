@@ -1,10 +1,10 @@
 import { Search, Bell, Wallet, ChevronDown, Ticket } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 
 const Header = ({ onNotificationClick, onProfileClick }) => {
-  const { tokenInfo, balance } = useASPToken();
+  const { tokenInfo, balance } = useAPSToken();
   const [walletOpen, setWalletOpen] = useState(false);
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">

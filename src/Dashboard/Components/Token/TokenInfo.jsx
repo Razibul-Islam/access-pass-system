@@ -1,8 +1,8 @@
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 import Balance from "./Balance";
 
 const TokenInfo = () => {
-  const { tokenInfo } = useASPToken();
+  const { tokenInfo } = useAPSToken();
 
   if (!tokenInfo) return <p className="text-gray-500">Loading token info...</p>;
 

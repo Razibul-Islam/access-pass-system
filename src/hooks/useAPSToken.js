@@ -2,8 +2,9 @@ import { ethers } from "ethers";
 import { UseWeb3 } from "../Context/Context";
 import { useEffect, useState } from "react";
 
-export const useASPToken = () => {
-  const { TokenContract, account, setError, setLoading } = UseWeb3();
+export const useAPSToken = () => {
+  const { APSContract, TokenContract, account, setError, setLoading } =
+    UseWeb3();
 
   const [tokenInfo, setTokenInfo] = useState({
     name: "",
@@ -43,8 +44,8 @@ export const useASPToken = () => {
 
     try {
       const userBalance = await TokenContract.balanceOf(account);
-      // setBalance(ethers.formatUnits(userBalance, tokenInfo.decimals));
-      setBalance(userBalance);
+      setBalance(ethers.formatUnits(userBalance, tokenInfo.decimals));
+      // setBalance(userBalance);
     } catch (err) {
       console.error("Error loading balance:", err);
       setError("Failed to load balance");
@@ -54,10 +55,18 @@ export const useASPToken = () => {
   // Get allowance
   const getAllowance = async (spenderAddress) => {
     if (!TokenContract || !account) return "0";
-
+    if (!spenderAddress) {
+      console.error("Spender address is null/undefined");
+      return "0";
+    }
     try {
       const allowance = await TokenContract.allowance(account, spenderAddress);
-      return ethers.formatUnits(allowance, tokenInfo.decimals);
+      const formattedAllowance = ethers.formatUnits(
+        allowance,
+        tokenInfo.decimals
+      );
+
+      return formattedAllowance;
     } catch (err) {
       console.error("Error getting allowance:", err);
       return "0";
@@ -65,7 +74,7 @@ export const useASPToken = () => {
   };
 
   // Approve spending
-  const approve = async (spenderAddress, amount) => {
+  const approve = async (amount) => {
     if (!TokenContract) throw new Error("Contract not initialized");
 
     try {
@@ -76,6 +85,10 @@ export const useASPToken = () => {
         amount.toString(),
         tokenInfo.decimals
       );
+
+      const spenderAddress = import.meta.env
+        .VITE_CONTRACT_ADDRESS_ACCESS_PASS_SYSTEM;
+
       const tx = await TokenContract.approve(spenderAddress, amountInWei);
       await tx.wait();
 

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 
 const TransferToken = () => {
-  const { transfer } = useASPToken();
+  const { transfer } = useAPSToken();
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
 

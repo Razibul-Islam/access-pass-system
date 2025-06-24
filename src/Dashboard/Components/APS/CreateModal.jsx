@@ -1,7 +1,11 @@
+import { create } from "ipfs-http-client";
 import { XCircle, Upload } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+
+const ipfs = create({ url: "http://127.0.0.1:5002/api/v0" });
 
 const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -10,28 +14,153 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
     endDate: "",
     maxPasses: "",
     image: null,
+    duration: 0,
   });
+  const [preview, setPreview] = useState(null);
+
+  const handleClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      // Preview Showing
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload on IPFS local Desktop
+      const added = await ipfs.add(file);
+      const cid = added.cid.toString();
+      console.log(cid);
+      setFormData((prev) => ({
+        ...prev,
+        image: cid,
+      }));
+    } catch (err) {
+      console.error("Error during adding image on IPFS: ", err);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (updated.startDate && updated.endDate) {
+        const start = new Date(updated.startDate);
+        const end = new Date(updated.endDate);
+        const dif = end - start;
+
+        if (dif >= 0) {
+          const difS = Math.floor(dif / 1000);
+          updated.duration = difS;
+        } else {
+          updated.duration = 0;
+        }
+      }
+      return updated;
+    });
   };
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   const {
+  //     name,
+  //     description,
+  //     startDate,
+  //     endDate,
+  //     price,
+  //     duration,
+  //     maxPasses,
+  //     image,
+  //   } = formData;
+
+  //   try {
+  //     const contractData = {
+  //       price,
+  //       duration,
+  //       maxPasses,
+  //       image,
+  //     };
+  //     onSubmit(contractData);
+
+  //     await fetch("http://localhost:5000/api/events/create ", {
+  //       method: "POST",
+  //       headers: {
+  //         "content-type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         name,
+  //         description,
+  //         startDate,
+  //         endDate,
+  //       }),
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
-    setFormData({
-      name: "",
-      price: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-      maxPasses: "",
-      image: null,
-    });
+
+    const {
+      name,
+      description,
+      startDate,
+      endDate,
+      price,
+      duration,
+      maxPasses,
+      image,
+    } = formData;
+
+    try {
+      // Validate required fields
+      if (!price || !duration || !maxPasses) {
+        alert("Please fill in all required fields");
+        return;
+      }
+
+      // Validate image - ensure it's not null
+      if (image === null || image === undefined) {
+        alert("Please select and upload an image");
+        return;
+      }
+
+      const contractData = {
+        price: price.toString(),
+        duration: parseInt(duration),
+        maxPasses: parseInt(maxPasses),
+        image: image, // This should now be a valid IPFS CID string
+      };
+
+      console.log("Contract data being sent:", contractData); // Debug log
+
+      await onSubmit(contractData);
+
+      await fetch("http://localhost:5000/api/events/create", {
+        // Fixed extra space
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          description,
+          startDate,
+          endDate,
+        }),
+      });
+    } catch (err) {
+      console.error("Error in handleSubmit:", err);
+    }
   };
 
   if (!isOpen) return null;
@@ -62,7 +191,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="text"
                 name="name"
-                value={formData.name}
+                value={formData?.name}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 placeholder="Enter event name"
@@ -76,7 +205,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="number"
                 name="price"
-                value={formData.price}
+                value={formData?.price}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 placeholder="0.00"
@@ -92,7 +221,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
             <textarea
               rows={4}
               name="description"
-              value={formData.description}
+              value={formData?.description}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
               placeholder="Enter event description"
@@ -108,7 +237,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="date"
                 name="startDate"
-                value={formData.startDate}
+                value={formData?.startDate}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required
@@ -121,7 +250,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="date"
                 name="endDate"
-                value={formData.endDate}
+                value={formData?.endDate}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required
@@ -134,7 +263,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="number"
                 name="maxPasses"
-                value={formData.maxPasses}
+                value={formData?.maxPasses}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 placeholder="1000"
@@ -142,12 +271,26 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               />
             </div>
           </div>
-
+          {preview && (
+            <div>
+              <img src={preview} alt="" />
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Event Image
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
+            <div
+              onClick={handleClick}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                hidden
+                accept="image/png, image/jpeg"
+              />
               <Upload className="mx-auto text-gray-400 mb-4" size={48} />
               <p className="text-gray-600">Click to upload or drag and drop</p>
               <p className="text-sm text-gray-500 mt-2">PNG, JPG up to 10MB</p>

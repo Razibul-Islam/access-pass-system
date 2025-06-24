@@ -1,15 +1,23 @@
 import { useState } from "react";
-import { useASPToken } from "../../../hooks/useAPSToken";
+import { useAPSToken } from "../../../hooks/useAPSToken";
 
 const ApproveToken = () => {
-  const { approve } = useASPToken();
-  const [spender, setSpender] = useState("");
+  const { approve } = useAPSToken();
+
   const [amount, setAmount] = useState("");
 
   const handleApprove = async () => {
+    if (!amount) {
+      alert("Please enter amount");
+      return;
+    }
+    if (parseFloat(amount) <= 0) {
+      alert("Amount must be greater than 0");
+      return;
+    }
     try {
-      await approve(spender, amount);
-      alert("Approved successfully!");
+      await approve(amount);
+      setAmount("");
     } catch (err) {
       alert(err.message);
     }
@@ -18,13 +26,6 @@ const ApproveToken = () => {
   return (
     <div className="bg-white shadow p-6 rounded-2xl space-y-4">
       <h3 className="text-lg font-semibold text-blue-600">Approve Token</h3>
-      <input
-        type="text"
-        placeholder="Spender Address"
-        value={spender}
-        onChange={(e) => setSpender(e.target.value)}
-        className="w-full border px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300"
-      />
       <input
         type="text"
         placeholder="Amount"

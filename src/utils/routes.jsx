@@ -14,6 +14,9 @@ import TokenInfo from "../Dashboard/Components/Token/TokenInfo";
 import ApproveToken from "../Dashboard/Components/Token/ApproveToken";
 import TransferToken from "../Dashboard/Components/Token/TransferToken";
 import MintToken from "../Dashboard/Components/Token/MintToken";
+import Event from "../Pages/Event";
+import EventDetails from "../Pages/EventDetails";
+import Allowance from "../Dashboard/Components/Token/Allowance";
 
 export const RouterWrapper = () => {
   const {
@@ -21,7 +24,7 @@ export const RouterWrapper = () => {
     handleEditEvent,
     handleViewEvent,
     handleCreateEvent,
-    events,
+    Events,
   } = UseCompCtx();
   const routes = createBrowserRouter([
     {
@@ -29,7 +32,7 @@ export const RouterWrapper = () => {
       element: (
         <div className="flex flex-col min-h-screen">
           <Header />
-          <main className="flex-grow container mx-auto p-4">
+          <main className="flex-grow container mx-auto">
             <App />
           </main>
           <Footer />
@@ -42,7 +45,11 @@ export const RouterWrapper = () => {
         },
         {
           path: "events",
-          element: <div>Events</div>,
+          element: <Event />,
+        },
+        {
+          path: "events/:_id/:id",
+          element: <EventDetails />,
         },
         {
           path: "passes",
@@ -61,14 +68,14 @@ export const RouterWrapper = () => {
         {
           index: true,
           element: (
-            <MainDashboard onCreateEvent={handleCreateEvent} events={events} />
+            <MainDashboard onCreateEvent={handleCreateEvent} events={Events} />
           ),
         },
         {
           path: "events",
           element: (
             <EventContent
-              events={events}
+              events={Events}
               onCreateEvent={handleCreateEvent}
               onViewEvent={handleViewEvent}
               onEditEvent={handleEditEvent}
@@ -103,6 +110,10 @@ export const RouterWrapper = () => {
         {
           path: "mint-token",
           element: <MintToken />,
+        },
+        {
+          path: "allowance",
+          element: <Allowance />,
         },
       ],
     },

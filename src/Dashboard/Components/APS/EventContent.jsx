@@ -1,20 +1,22 @@
 import { Plus, Filter } from "lucide-react";
 import EventCard from "./EventCard";
 import { UseEvents } from "../../../hooks/backend.jsx";
+import { useAccessPassSystem } from "../../../hooks/useAccessPassSystem.js";
+import Loading from "../../../Components/Loading.jsx";
 
 const EventContent = ({
   events,
   onCreateEvent,
-  onViewEvent,
-  onEditEvent,
-  onBuyPass,
+  setEventId,
+  handleUpdateEvent,
 }) => {
   const { bevents } = UseEvents();
-  // const margedEvents = events.map((item, index) =>
-  //   Object.assign({}, item, bevents[index])
-  // );
+  const { loading } = useAccessPassSystem();
 
-  const margedEvents = events.map((item, index) => ({
+  if (loading) {
+    return <Loading />;
+  }
+  const margedEvents = events?.map((item, index) => ({
     ...item,
     ...bevents[index],
   }));
@@ -43,9 +45,8 @@ const EventContent = ({
           <EventCard
             key={event.id}
             event={event}
-            onView={onViewEvent}
-            onEdit={onEditEvent}
-            onBuyPass={onBuyPass}
+            setEventId={setEventId}
+            handleUpdateEvent={handleUpdateEvent}
           />
         ))}
       </div>

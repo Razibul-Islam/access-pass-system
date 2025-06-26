@@ -18,7 +18,7 @@ contract AccessPassModifier is Ownable {
     mapping(uint256 => address[]) internal eventPassHolders;
     mapping(address => bool) internal eventManagers;
 
-    uint256 internal nextEventId;
+    uint256 public nextEventId;
 
     // Custom Errors
     error NotAdmin();

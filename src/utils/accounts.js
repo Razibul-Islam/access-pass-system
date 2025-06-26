@@ -1,5 +1,5 @@
-export const ERC20_Address = "0x929Da9e39847acD4450A73F2C2Cf256445c26048";
-export const APS_Address = "0x0E5387e4fB468BB56Beb61A99FEDD443fC13f241";
+export const ERC20_Address = "0xC86E6592Ddd9213ACE733606888901DF53E935FC";
+export const APS_Address = "0x0249388adD5505011642C2eDFfb8681892B74AAd";
 
 export const ERC_ABI = [
   {
@@ -335,70 +335,6 @@ export const APS_ABI = [
     inputs: [
       {
         internalType: "address",
-        name: "manager",
-        type: "address",
-      },
-    ],
-    name: "addEventManager",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "eventName",
-        type: "string",
-      },
-      {
-        internalType: "uint256[3]",
-        name: "_price",
-        type: "uint256[3]",
-      },
-      {
-        internalType: "uint256",
-        name: "duration",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256[3]",
-        name: "_maxpass",
-        type: "uint256[3]",
-      },
-      {
-        internalType: "string",
-        name: "ipfsHash",
-        type: "string",
-      },
-      {
-        internalType: "string[3]",
-        name: "passTypeNames",
-        type: "string[3]",
-      },
-    ],
-    name: "createEvent",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "deactivateEvent",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "_paymentToken",
         type: "address",
       },
@@ -574,29 +510,6 @@ export const APS_ABI = [
     ],
     name: "EventUpdated",
     type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "additionalTime",
-        type: "uint256",
-      },
-    ],
-    name: "extendPass",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
   },
   {
     anonymous: false,
@@ -793,114 +706,6 @@ export const APS_ABI = [
     type: "event",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint8",
-        name: "passType",
-        type: "uint8",
-      },
-    ],
-    name: "purchasePass",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "manager",
-        type: "address",
-      },
-    ],
-    name: "removeEventManager",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "renewPass",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "renounceOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
-      },
-    ],
-    name: "revokePass",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "tokenAddress",
-        type: "address",
-      },
-    ],
-    name: "setPaymentToken",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_treasury",
-        type: "address",
-      },
-    ],
-    name: "setTreasury",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferOwnership",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     anonymous: false,
     inputs: [
       {
@@ -922,9 +727,22 @@ export const APS_ABI = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "eventId",
-        type: "uint256",
+        internalType: "address",
+        name: "manager",
+        type: "address",
+      },
+    ],
+    name: "addEventManager",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "eventName",
+        type: "string",
       },
       {
         internalType: "uint256[3]",
@@ -933,23 +751,62 @@ export const APS_ABI = [
       },
       {
         internalType: "uint256",
-        name: "_duration",
+        name: "duration",
         type: "uint256",
       },
       {
         internalType: "uint256[3]",
-        name: "_maxpasses",
+        name: "_maxpass",
         type: "uint256[3]",
       },
+      {
+        internalType: "string",
+        name: "ipfsHash",
+        type: "string",
+      },
+      {
+        internalType: "string[3]",
+        name: "passTypeNames",
+        type: "string[3]",
+      },
     ],
-    name: "updateEvent",
+    name: "createEvent",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [],
-    name: "withdrawFunds",
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "deactivateEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "additionalTime",
+        type: "uint256",
+      },
+    ],
+    name: "extendPass",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -1189,6 +1046,19 @@ export const APS_ABI = [
   },
   {
     inputs: [],
+    name: "nextEventId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "owner",
     outputs: [
       {
@@ -1214,6 +1084,114 @@ export const APS_ABI = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint8",
+        name: "passType",
+        type: "uint8",
+      },
+    ],
+    name: "purchasePass",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "manager",
+        type: "address",
+      },
+    ],
+    name: "removeEventManager",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "renewPass",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+    ],
+    name: "revokePass",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "tokenAddress",
+        type: "address",
+      },
+    ],
+    name: "setPaymentToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_treasury",
+        type: "address",
+      },
+    ],
+    name: "setTreasury",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
+    ],
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "treasury",
     outputs: [
@@ -1224,6 +1202,41 @@ export const APS_ABI = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "eventId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_price",
+        type: "uint256[3]",
+      },
+      {
+        internalType: "uint256",
+        name: "_duration",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256[3]",
+        name: "_maxpasses",
+        type: "uint256[3]",
+      },
+    ],
+    name: "updateEvent",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

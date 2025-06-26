@@ -25,6 +25,8 @@ export const RouterWrapper = () => {
     handleViewEvent,
     handleCreateEvent,
     Events,
+    setEventId,
+    handleUpdateEvent,
   } = UseCompCtx();
   const routes = createBrowserRouter([
     {
@@ -80,6 +82,8 @@ export const RouterWrapper = () => {
               onViewEvent={handleViewEvent}
               onEditEvent={handleEditEvent}
               onBuyPass={handleBuyPass}
+              setEventId={setEventId}
+              handleUpdateEvent={handleUpdateEvent}
             />
           ),
         },

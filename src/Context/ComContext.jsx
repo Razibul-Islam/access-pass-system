@@ -5,11 +5,20 @@ const ComContx = createContext();
 
 export default function ComContext({ children }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [Events, setEvents] = useState([]);
-  const { createEvent, getAllEvents } = useAccessPassSystem();
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [Events, setEvents] = useState(null);
+  const [eventId, setEventId] = useState({});
+  const { createEvent, getAllEvents, updateEvent } = useAccessPassSystem();
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);
+  };
+
+  const handleUpdateEvent = () => {
+    setShowUpdateModal(true);
+  };
+  const handleUpdateCloseEvent = () => {
+    setShowUpdateModal(false);
   };
 
   const handleCloseModal = () => {
@@ -22,50 +31,42 @@ export default function ComContext({ children }) {
       .catch((err) => console.log(err));
   }, [getAllEvents]);
 
+  console.log(Events);
+  console.log(eventId);
+
   const handleSubmitEvent = async (eventData) => {
     await createEvent(
-      eventData.price,
+      eventData.eventName,
+      eventData._price,
       eventData.duration,
-      eventData.maxPasses,
-      eventData.image
+      eventData._maxpass,
+      eventData.ipfsHash,
+      eventData.passTypeNames
     );
     setShowCreateModal(false);
-    console.log(eventData);
 
     return Promise.resolve();
   };
 
-  const handleViewEvent = (event) => {
-    console.log("View event:", event);
-  };
-
-  const handleEditEvent = (event) => {
-    console.log("Edit event:", event);
-  };
-
-  const handleBuyPass = (event) => {
-    console.log("Buy pass for:", event);
-  };
-
-  const handleNotificationClick = () => {
-    console.log("Notification clicked");
-  };
-
-  const handleProfileClick = () => {
-    console.log("Profile clicked");
+  const handleSubmitUpdateEvent = async (eventData) => {
+    const { eventId, _duration, _maxpasses, _price } = eventData;
+    await updateEvent(eventId, _price, _duration, _maxpasses);
+    setShowUpdateModal(false);
+    return Promise.resolve();
   };
 
   const values = {
     showCreateModal,
+    showUpdateModal,
+    eventId,
     Events,
     handleCreateEvent,
     handleCloseModal,
     handleSubmitEvent,
-    handleViewEvent,
-    handleEditEvent,
-    handleBuyPass,
-    handleNotificationClick,
-    handleProfileClick,
+    handleUpdateEvent,
+    handleUpdateCloseEvent,
+    handleSubmitUpdateEvent,
+    setEventId,
   };
 
   return <ComContx.Provider value={values}>{children}</ComContx.Provider>;

@@ -1,189 +1,151 @@
-import { ethers } from "ethers";
-import { create } from "ipfs-http-client";
-import { XCircle, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAccessPassSystem } from "../../../hooks/useAccessPassSystem";
+import { XCircle } from "lucide-react";
+import { UseEvents } from "../../../hooks/backend";
+import Loading from "../../../Components/Loading";
 
-const ipfs = create({ url: "http://127.0.0.1:5002/api/v0" });
-
-const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
-  const fileInputRef = useRef(null);
-
+export default function UpdateModal({ isOpen, onClose, onSubmit, eventId }) {
+  const { getEventDetails, loading } = useAccessPassSystem();
+  const { fetchEventById } = UseEvents();
+  const [eventData, setEventData] = useState(null);
+  const [eventBData, setEventBData] = useState(null);
   const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    description: "",
     startDate: "",
     endDate: "",
 
     // Tier 1 fields
-    tier1Name: "",
     tier1Price: "",
     tier1MaxPasses: "",
 
     // Tier 2 fields
-    tier2Name: "",
     tier2Price: "",
     tier2MaxPasses: "",
 
     // Tier 3 fields
-    tier3Name: "",
     tier3Price: "",
     tier3MaxPasses: "",
-
-    image: null,
     duration: 0,
   });
 
-  const [preview, setPreview] = useState(null);
+  //   console.log(eventId._id);
 
-  const handleClick = () => {
-    fileInputRef.current.click();
-  };
+  const handleBevent = useCallback(
+    async (_id) => {
+      const res = await fetchEventById(_id);
+      setEventBData(res);
+    },
+    [fetchEventById]
+  );
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-      // Preview Showing
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-
-      // Upload on IPFS local Desktop
-      const added = await ipfs.add(file);
-      const cid = added.cid.toString();
-      console.log(cid);
-      setFormData((prev) => ({
-        ...prev,
-        image: cid,
-      }));
-    } catch (err) {
-      console.error("Error during adding image on IPFS: ", err);
-    }
-  };
+  const handleEventsDetails = useCallback(
+    async (id) => {
+      const res = await getEventDetails(id);
+      setEventData(res);
+    },
+    [getEventDetails]
+  );
 
   const handleInputChange = (e) => {
+    e.preventDefault();
     const { name, value } = e.target;
 
     setFormData((prev) => {
-      const updated = { ...prev, [name]: value };
-      if (updated.startDate && updated.endDate) {
-        const start = new Date(updated.startDate);
-        const end = new Date(updated.endDate);
+      const update = { ...prev, [name]: value };
+
+      const startDate = update.startDate || eventBData?.startDate;
+      const endDate = update.endDate || eventBData?.endDate;
+      console.log(startDate, endDate);
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
         const dif = end - start;
 
-        if (dif >= 0) {
-          const difS = Math.floor(dif / 1000);
-          updated.duration = difS;
-        } else {
-          updated.duration = 0;
-        }
+        update.duration = dif >= 0 ? Math.floor(dif / 1000) : 0;
       }
-      return updated;
+
+      return update;
     });
   };
+
+  useEffect(() => {
+    if (eventId._id && eventId.id) {
+      handleBevent(eventId._id);
+      handleEventsDetails(eventId.id);
+    }
+  }, [eventId.id, eventId._id, handleBevent, handleEventsDetails]);
+
+  useEffect(() => {
+    if (eventData) {
+      setFormData((prev) => ({
+        ...prev,
+        duration: eventData.duration,
+      }));
+    }
+  }, [eventData]);
+
+  console.log(eventBData);
+  console.log(eventData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const {
-      name,
-      category,
-      description,
       startDate,
       endDate,
-
-      // Tier 1 fields
-      tier1Name,
       tier1Price,
       tier1MaxPasses,
-
-      // Tier 2 fields
-      tier2Name,
       tier2Price,
       tier2MaxPasses,
-
-      // Tier 3 fields
-      tier3Name,
       tier3Price,
       tier3MaxPasses,
-
-      image,
       duration,
     } = formData;
 
-    try {
-      // Validate required fields
-      if (
-        !name ||
-        !tier1Price ||
-        !duration ||
-        !tier1MaxPasses ||
-        !tier2MaxPasses ||
-        !tier2Price ||
-        !tier3Price ||
-        !tier3MaxPasses
-      ) {
-        alert("Please fill in all required fields");
-        return;
-      }
+    const contractData = {
+      eventId: eventId.id,
+      _price: [
+        tier1Price || eventData?.priceFormatted[0],
+        tier2Price || eventData?.priceFormatted[1],
+        tier3Price || eventData?.priceFormatted[2],
+      ],
+      _duration: duration,
+      _maxpasses: [
+        tier1MaxPasses || eventData?.maxPasses[0],
+        tier2MaxPasses || eventData?.maxPasses[1],
+        tier3MaxPasses || eventData?.maxPasses[2],
+      ],
+    };
+    await onSubmit(contractData);
 
-      // Validate image - ensure it's not null
-      if (image === null || image === undefined) {
-        alert("Please select and upload an image");
-        return;
-      }
-
-      const contractData = {
-        eventName: name,
-        _price: [
-          ethers.parseEther(tier1Price.toString()),
-          ethers.parseEther(tier2Price.toString()),
-          ethers.parseEther(tier3Price.toString()),
-        ],
-        duration: parseInt(duration),
-        _maxpass: [
-          parseInt(tier1MaxPasses),
-          parseInt(tier2MaxPasses),
-          parseInt(tier3MaxPasses),
-        ],
-        ipfsHash: image, // This should now be a valid IPFS CID string
-        passTypeNames: [tier1Name, tier2Name, tier3Name],
-      };
-
-      await onSubmit(contractData);
-
-      await fetch("http://localhost:5000/api/events/create", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          category,
-          description,
-          startDate,
-          endDate,
-          sold: 0,
-        }),
-      });
-    } catch (err) {
-      console.error("Error in handleSubmit:", err);
-    }
+    await fetch(`http://localhost:5000/api/events/update/${eventId._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        category: eventBData.category,
+        description: eventBData.description,
+        startDate: startDate || eventBData.startDate,
+        endDate: endDate || eventBData.endDate,
+        sold: eventBData.sold,
+      }),
+    });
   };
 
-  if (!isOpen) return null;
+  if (loading) {
+    return <Loading />;
+  }
 
+  console.log(eventBData);
+  console.log(eventData);
+
+  if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-gray-900">
-              Create New Event
-            </h3>
+            <h3 className="text-2xl font-bold text-gray-900">Update Event</h3>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -202,10 +164,9 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="text"
                 name="name"
-                value={formData?.name}
-                onChange={handleInputChange}
+                defaultValue={eventData?.name}
+                readOnly
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
-                placeholder="Enter event name"
                 required
               />
             </div>
@@ -215,8 +176,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               </label>
               <select
                 name="category"
-                value={formData?.category}
-                onChange={handleInputChange}
+                value={eventBData?.category}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required
               >
@@ -237,10 +197,9 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
             <textarea
               rows={4}
               name="description"
-              value={formData?.description}
-              onChange={handleInputChange}
+              defaultValue={eventBData?.description}
+              readOnly
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
-              placeholder="Enter event description"
               required
             ></textarea>
           </div>
@@ -253,7 +212,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="date"
                 name="startDate"
-                value={formData?.startDate}
+                defaultValue={eventBData?.startDate}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required
@@ -266,7 +225,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
               <input
                 type="date"
                 name="endDate"
-                value={formData?.endDate}
+                defaultValue={eventBData?.endDate}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                 required
@@ -291,11 +250,11 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="text"
                     name="tier1Name"
-                    value={formData?.tier1Name}
-                    onChange={handleInputChange}
+                    defaultValue={eventData?.passTypeNames[0]}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="e.g., Early Bird"
                     required
+                    readOnly
                   />
                 </div>
                 <div>
@@ -305,7 +264,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier1Price"
-                    value={formData?.tier1Price}
+                    defaultValue={eventData?.priceFormatted[0]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="0.00"
@@ -321,7 +280,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier1MaxPasses"
-                    value={formData?.tier1MaxPasses}
+                    defaultValue={eventData?.maxPasses[0]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="100"
@@ -343,11 +302,11 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="text"
                     name="tier2Name"
-                    value={formData?.tier2Name}
-                    onChange={handleInputChange}
+                    defaultValue={eventData?.passTypeNames[1]}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="e.g., Regular"
                     required
+                    readOnly
                   />
                 </div>
                 <div>
@@ -357,7 +316,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier2Price"
-                    value={formData?.tier2Price}
+                    defaultValue={eventData?.priceFormatted[1]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="0.00"
@@ -373,7 +332,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier2MaxPasses"
-                    value={formData?.tier2MaxPasses}
+                    defaultValue={eventData?.maxPasses[1]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="500"
@@ -395,11 +354,11 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="text"
                     name="tier3Name"
-                    value={formData?.tier3Name}
-                    onChange={handleInputChange}
+                    defaultValue={eventData?.passTypeNames[2]}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="e.g., VIP"
                     required
+                    readOnly
                   />
                 </div>
                 <div>
@@ -409,7 +368,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier3Price"
-                    value={formData?.tier3Price}
+                    defaultValue={eventData?.priceFormatted[2]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="0.00"
@@ -425,7 +384,7 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
                   <input
                     type="number"
                     name="tier3MaxPasses"
-                    value={formData?.tier3MaxPasses}
+                    defaultValue={eventData?.maxPasses[2]}
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
                     placeholder="50"
@@ -438,49 +397,14 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           {/* Image Upload Section */}
-          {preview && (
-            <div className="flex justify-center">
-              <div className="relative">
-                <img
-                  src={preview}
-                  alt="Event preview"
-                  className="max-w-md max-h-64 object-cover rounded-lg shadow-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreview(null);
-                    setFormData((prev) => ({ ...prev, image: null }));
-                    if (fileInputRef.current) fileInputRef.current.value = "";
-                  }}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Image
-            </label>
-            <div
-              onClick={handleClick}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer"
-            >
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                hidden
-                accept="image/png, image/jpeg, image/jpg, image/webp"
+          <div className="flex justify-center">
+            <div className="relative">
+              <img
+                src={`https://ipfs.io/ipfs/${eventData?.ipfsHash}`}
+                alt="Event preview"
+                className="max-w-md max-h-64 object-cover rounded-lg shadow-md"
               />
-              <Upload className="mx-auto text-gray-400 mb-4" size={48} />
-              <p className="text-gray-600">Click to upload or drag and drop</p>
-              <p className="text-sm text-gray-500 mt-2">
-                PNG, JPG, WEBP up to 10MB
-              </p>
             </div>
           </div>
 
@@ -503,6 +427,4 @@ const CreateEventModal = ({ isOpen, onClose, onSubmit }) => {
       </div>
     </div>
   );
-};
-
-export default CreateEventModal;
+}

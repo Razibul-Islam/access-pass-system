@@ -3,6 +3,7 @@ import { UseCompCtx } from "../Context/ComContext";
 import Header from "../Dashboard/Components/APS/Headers";
 import Navigation from "../Dashboard/Components/APS/Navigation";
 import CreateEventModal from "../Dashboard/Components/APS/CreateModal";
+import UpdateModal from "../Dashboard/Components/APS/UpdateModal";
 
 export default function Dashboard() {
   const {
@@ -11,6 +12,10 @@ export default function Dashboard() {
     showCreateModal,
     handleCloseModal,
     handleSubmitEvent,
+    showUpdateModal,
+    handleUpdateCloseEvent,
+    handleSubmitUpdateEvent,
+    eventId,
   } = UseCompCtx();
 
   return (
@@ -32,6 +37,12 @@ export default function Dashboard() {
         isOpen={showCreateModal}
         onClose={handleCloseModal}
         onSubmit={handleSubmitEvent}
+      />
+      <UpdateModal
+        isOpen={showUpdateModal}
+        onClose={handleUpdateCloseEvent}
+        onSubmit={handleSubmitUpdateEvent}
+        eventId={eventId}
       />
     </div>
   );

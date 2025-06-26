@@ -133,13 +133,18 @@ export const useAccessPassSystem = () => {
 
       try {
         const event = await APSContract.getEventDetails(eventId);
+
         return {
           price: event.price, // Keep as BigInt for calculations
-          priceFormatted: ethers.formatEther(event.price), // Human readable
+          priceFormatted: event.price.map((p) =>
+            ethers.formatEther(p.toString())
+          ), // Human readable
           duration: Number(event.duration),
-          maxPasses: Number(event.maxPasses),
+          maxPasses: event.maxPasses.map((m) => Number(m)),
           ipfsHash: event.ipfsHash,
           active: event.active,
+          name: event.eventName,
+          passTypeNames: event.passTypeNames,
         };
       } catch (err) {
         console.error("Error getting event details:", err);
@@ -182,6 +187,7 @@ export const useAccessPassSystem = () => {
   // Get all active events
   const getAllEvents = useCallback(async () => {
     if (!APSContract) return [];
+    setLoading(true);
     try {
       const nextEventId = await APSContract.nextEventId();
       const eventsData = [];
@@ -200,6 +206,8 @@ export const useAccessPassSystem = () => {
     } catch (err) {
       console.error("Error getting all events:", err);
       return [];
+    } finally {
+      setLoading(false);
     }
   }, [APSContract, getEventDetails]);
 
@@ -317,50 +325,46 @@ export const useAccessPassSystem = () => {
   // Create a new event (Admin only)
   const createEvent = async (
     eventName,
-    [price1, price2, price3],
+    _price,
     duration,
-    [maxPasses1, maxPasses2, maxPasses3],
+    _maxpass,
     ipfsHash,
-    [passTypeNames1, passTypeNames2, passTypeNames3]
+    passTypeNames
   ) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
-
+    console.log({
+      eventName,
+      _price,
+      duration,
+      _maxpass,
+      ipfsHash,
+      passTypeNames,
+    });
     // Add parameter validation
     if (isEmpty(eventName))
       throw new Error("Event Name is required and cannot be null");
 
-    if ([price1, price2, price3].some(isEmpty))
-      throw new Error("All price values are required and cannot be empty");
-
     if (isEmpty(duration))
       throw new Error("Duration is required and cannot be null");
 
-    if ([maxPasses1, maxPasses2, maxPasses3].some(isEmpty))
-      throw new Error("MaxPasses is required and cannot be null");
-
     if (isEmpty(ipfsHash))
       throw new Error("IPFS Hash is required and cannot be null or empty");
-
-    if ([passTypeNames1, passTypeNames2, passTypeNames3].some(isEmpty))
-      throw new Error("Pass Type Names are required");
 
     try {
       setLoading(true);
       setError(null);
 
       // Convert price to Wei if it's in Ether
-      const prices = [price1, price2, price3].map((p) =>
-        ethers.parseEther(p.toString())
-      );
-      const maxPasses = [maxPasses1, maxPasses2, maxPasses3];
-      const passTypeNames = [passTypeNames1, passTypeNames2, passTypeNames3];
+      // const prices = _price.map((p) => ethers.parseEther(p.toString()));
+
+      console.log(_price);
 
       const tx = await APSContract.createEvent(
         eventName,
-        prices,
+        _price,
         duration,
-        maxPasses,
+        _maxpass,
         ipfsHash,
         passTypeNames
       );

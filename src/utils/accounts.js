@@ -1,5 +1,5 @@
-export const ERC20_Address = "0x48124cD45F1daCaf32dde3134829FCa5cB97c7DD";
-export const APS_Address = "0x31590dF2CBe53399996630Bd8140634e85795B3A";
+export const ERC20_Address = "0x929Da9e39847acD4450A73F2C2Cf256445c26048";
+export const APS_Address = "0x0E5387e4fB468BB56Beb61A99FEDD443fC13f241";
 
 export const ERC_ABI = [
   {

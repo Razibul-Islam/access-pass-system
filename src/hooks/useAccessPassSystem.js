@@ -11,11 +11,15 @@ export const useAccessPassSystem = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Helper Function
+  const isEmpty = (v) => v === null || v === undefined || v === "";
+
   // Purchase a new event pass
-  const purchaseEventPass = async (eventId) => {
+  const purchaseEventPass = async (eventId, passType) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
-
+    if (isEmpty(eventId)) throw new Error("Event Id is Required");
+    if (isEmpty(passType)) throw new Error("Pass Type is Required");
     try {
       setError(null);
 
@@ -36,7 +40,7 @@ export const useAccessPassSystem = () => {
         await approve(priceInEther);
       }
 
-      const tx = await APSContract.purchasePass(eventId);
+      const tx = await APSContract.purchasePass(eventId, passType);
       await tx.wait();
       await refreshUserPasses();
 
@@ -53,6 +57,8 @@ export const useAccessPassSystem = () => {
   const renewPass = async (eventId) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(eventId)) throw new Error("Event Id is Required");
 
     try {
       setLoading(true);
@@ -88,6 +94,11 @@ export const useAccessPassSystem = () => {
   // Check if a pass is valid for a user
   const isPassValid = async (userAddress, eventId) => {
     if (!APSContract) return false;
+
+    if (isEmpty(eventId)) throw new Error("Event Id is Required");
+
+    if (isEmpty(userAddress)) throw new Error("User Address is Required");
+
     try {
       return await APSContract.isPassValid(userAddress, eventId);
     } catch (err) {
@@ -99,6 +110,11 @@ export const useAccessPassSystem = () => {
   // Get pass expiry timestamp
   const getPassExpiry = async (userAddress, eventId) => {
     if (!APSContract) return null;
+
+    if (isEmpty(userAddress)) throw new Error("User Address is Required");
+
+    if (isEmpty(eventId)) throw new Error("Event Id is Required");
+
     try {
       const expiry = await APSContract.getPassExpiry(userAddress, eventId);
       return new Date(Number(expiry) * 1000);
@@ -112,6 +128,9 @@ export const useAccessPassSystem = () => {
   const getEventDetails = useCallback(
     async (eventId) => {
       if (!APSContract) return null;
+
+      if (isEmpty(eventId)) throw new Error("Event Id is Required");
+
       try {
         const event = await APSContract.getEventDetails(eventId);
         return {
@@ -129,6 +148,36 @@ export const useAccessPassSystem = () => {
     },
     [APSContract]
   );
+
+  // Get Pass Type
+
+  const getPassType = async (eventId) => {
+    if (!APSContract) return null;
+
+    if (isEmpty(eventId)) throw new Error("Event Id is Required");
+
+    try {
+      const passType = await APSContract.getPassTypesInfo(eventId);
+      return passType;
+    } catch (err) {
+      console.error("Error during getting pass type :", err);
+    }
+  };
+
+  const getActivePass = async (userAddress) => {
+    if (!APSContract) return null;
+
+    if (isEmpty(userAddress)) throw new Error("User Address is Required");
+
+    try {
+      const ActivepassType = await APSContract.getUserActivePassCount(
+        userAddress
+      );
+      return ActivepassType;
+    } catch (err) {
+      console.error("Error while fetching active pass type:", err);
+    }
+  };
 
   // Get all active events
   const getAllEvents = useCallback(async () => {
@@ -184,29 +233,6 @@ export const useAccessPassSystem = () => {
     }
   };
 
-  // Get all pass holders for an event
-  const getPassesByEvent = async (eventId) => {
-    if (!APSContract) return [];
-    try {
-      return await APSContract.getPassesByEvent(eventId);
-    } catch (err) {
-      console.error("Error getting passes by event:", err);
-      return [];
-    }
-  };
-
-  // Get contract balance
-  const getContractBalance = async () => {
-    if (!APSContract) return "0";
-    try {
-      const balance = await APSContract.getContractBalance();
-      return ethers.formatEther(balance);
-    } catch (err) {
-      console.error("Error getting contract balance:", err);
-      return "0";
-    }
-  };
-
   // Check if user already has a pass for an event
   const userHasPass = async (eventId, userAddress = account) => {
     if (!APSContract || !userAddress) return false;
@@ -230,18 +256,6 @@ export const useAccessPassSystem = () => {
     } catch (err) {
       console.error("Error checking pass expiry:", err);
       return true;
-    }
-  };
-
-  // Get next event ID
-  const getNextEventId = async () => {
-    if (!APSContract) return 1;
-    try {
-      const nextId = await APSContract.nextEventId();
-      return Number(nextId);
-    } catch (err) {
-      console.error("Error getting next event ID:", err);
-      return 1;
     }
   };
 
@@ -301,36 +315,54 @@ export const useAccessPassSystem = () => {
   // Admin Functions
 
   // Create a new event (Admin only)
-  const createEvent = async (price, duration, maxPasses, ipfsHash) => {
+  const createEvent = async (
+    eventName,
+    [price1, price2, price3],
+    duration,
+    [maxPasses1, maxPasses2, maxPasses3],
+    ipfsHash,
+    [passTypeNames1, passTypeNames2, passTypeNames3]
+  ) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
 
     // Add parameter validation
-    if (price === null || price === undefined || price === "") {
-      throw new Error("Price is required and cannot be null or empty");
-    }
-    if (duration === null || duration === undefined) {
+    if (isEmpty(eventName))
+      throw new Error("Event Name is required and cannot be null");
+
+    if ([price1, price2, price3].some(isEmpty))
+      throw new Error("All price values are required and cannot be empty");
+
+    if (isEmpty(duration))
       throw new Error("Duration is required and cannot be null");
-    }
-    if (maxPasses === null || maxPasses === undefined) {
+
+    if ([maxPasses1, maxPasses2, maxPasses3].some(isEmpty))
       throw new Error("MaxPasses is required and cannot be null");
-    }
-    if (ipfsHash === null || ipfsHash === undefined || ipfsHash === "") {
+
+    if (isEmpty(ipfsHash))
       throw new Error("IPFS Hash is required and cannot be null or empty");
-    }
+
+    if ([passTypeNames1, passTypeNames2, passTypeNames3].some(isEmpty))
+      throw new Error("Pass Type Names are required");
 
     try {
       setLoading(true);
       setError(null);
 
       // Convert price to Wei if it's in Ether
-      const priceWei = ethers.parseEther(price.toString());
+      const prices = [price1, price2, price3].map((p) =>
+        ethers.parseEther(p.toString())
+      );
+      const maxPasses = [maxPasses1, maxPasses2, maxPasses3];
+      const passTypeNames = [passTypeNames1, passTypeNames2, passTypeNames3];
 
       const tx = await APSContract.createEvent(
-        priceWei,
+        eventName,
+        prices,
         duration,
         maxPasses,
-        ipfsHash
+        ipfsHash,
+        passTypeNames
       );
       await tx.wait();
       await refreshEvents();
@@ -345,20 +377,35 @@ export const useAccessPassSystem = () => {
   };
 
   // Update an existing event (Admin only)
-  const updateEvent = async (eventId, price, duration, maxPasses) => {
+  const updateEvent = async (
+    eventId,
+    [price1, price2, price3],
+    duration,
+    [maxPasses1, maxPasses2, maxPasses3]
+  ) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(eventId)) throw new Error("Event ID is required");
+    if ([price1, price2, price3].some(isEmpty))
+      throw new Error("All price values are required");
+    if (isEmpty(duration)) throw new Error("Duration is required");
+    if ([maxPasses1, maxPasses2, maxPasses3].some(isEmpty))
+      throw new Error("All max pass values are required");
 
     try {
       setLoading(true);
       setError(null);
 
       // Convert price to Wei if it's in Ether
-      const priceWei = ethers.parseEther(price.toString());
+      const pricesWei = [price1, price2, price3].map((price) =>
+        ethers.parseEther(price.toString())
+      );
+      const maxPasses = [maxPasses1, maxPasses2, maxPasses3];
 
       const tx = await APSContract.updateEvent(
         eventId,
-        priceWei,
+        pricesWei,
         duration,
         maxPasses
       );
@@ -378,6 +425,8 @@ export const useAccessPassSystem = () => {
   const deactivateEvent = async (eventId) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(eventId)) throw new Error("Event Id is required");
 
     try {
       setLoading(true);
@@ -401,6 +450,9 @@ export const useAccessPassSystem = () => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
 
+    if (isEmpty(userAddress)) throw new Error("User Address is required");
+    if (isEmpty(eventId)) throw new Error("Event Id is required");
+
     try {
       setLoading(true);
       setError(null);
@@ -422,6 +474,10 @@ export const useAccessPassSystem = () => {
   const extendPass = async (userAddress, eventId, additionalTime) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(userAddress)) throw new Error("User Address is required");
+    if (isEmpty(eventId)) throw new Error("Event Id is required");
+    if (isEmpty(additionalTime)) throw new Error("Additional Time is required");
 
     try {
       setLoading(true);
@@ -449,6 +505,8 @@ export const useAccessPassSystem = () => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
 
+    if (isEmpty(tokenAddress)) throw new Error("Token Address Is required");
+
     try {
       setLoading(true);
       setError(null);
@@ -469,6 +527,9 @@ export const useAccessPassSystem = () => {
   const setTreasury = async (treasuryAddress) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(treasuryAddress))
+      throw new Error("Treasury Address is Required");
 
     try {
       setLoading(true);
@@ -491,6 +552,8 @@ export const useAccessPassSystem = () => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
 
+    if (isEmpty(managerAddress)) throw new Error("Manager Address is Required");
+
     try {
       setLoading(true);
       setError(null);
@@ -511,6 +574,8 @@ export const useAccessPassSystem = () => {
   const removeEventManager = async (managerAddress) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    if (isEmpty(managerAddress)) throw new Error("Manager Address is Required");
 
     try {
       setLoading(true);
@@ -600,6 +665,8 @@ export const useAccessPassSystem = () => {
     getEventDetails,
     getAllEvents,
     getUserPasses,
+    getPassType,
+    getActivePass,
     isEventManager,
     isAdmin,
     withdrawFunds,
@@ -615,11 +682,8 @@ export const useAccessPassSystem = () => {
 
     // Additional utility functions
     getUserActivePassCount,
-    getPassesByEvent,
-    getContractBalance,
     userHasPass,
     isPassExpired,
-    getNextEventId,
 
     // Refresh functions
     refreshEvents,

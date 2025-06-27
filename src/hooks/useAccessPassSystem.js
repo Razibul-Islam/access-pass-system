@@ -18,18 +18,43 @@ export const useAccessPassSystem = () => {
   const purchaseEventPass = async (eventId, passType) => {
     if (!APSContract || !account)
       throw new Error("Contract not initialized or wallet not connected");
+
+    console.log(eventId, passType);
+
     if (isEmpty(eventId)) throw new Error("Event Id is Required");
     if (isEmpty(passType)) throw new Error("Pass Type is Required");
+
     try {
       setError(null);
+      setLoading(true);
 
       const eventDetails = await getEventDetails(eventId);
-
       if (!eventDetails) throw new Error("Event not found");
 
-      const eventPriceWei = eventDetails.priceFormatted;
-      const currentAllowance = await getAllowance(account);
+      // Get the price for the specific tier by matching tier names
+      let tierPrice;
+      let type;
+      console.log(eventDetails);
 
+      if (passType === eventDetails.passTypeNames[0]) {
+        tierPrice = eventDetails.price[0];
+        type = 0;
+      } else if (passType === eventDetails.passTypeNames[1]) {
+        tierPrice = eventDetails.price[1];
+        type = 1;
+      } else if (passType === eventDetails.passTypeNames[2]) {
+        tierPrice = eventDetails.price[2];
+        type = 2;
+      } else {
+        throw new Error(`Pass type "${passType}" not found for this event`);
+      }
+
+      if (!tierPrice) {
+        throw new Error(`${passType} is not available for this event`);
+      }
+
+      const eventPriceWei = ethers.parseEther(tierPrice.toString());
+      const currentAllowance = await getAllowance(account);
       const currentAllowanceWei = ethers.parseEther(
         currentAllowance.toString()
       );
@@ -40,9 +65,11 @@ export const useAccessPassSystem = () => {
         await approve(priceInEther);
       }
 
-      const tx = await APSContract.purchasePass(eventId, passType);
+      const tx = await APSContract.purchasePass(eventId, type);
       await tx.wait();
       await refreshUserPasses();
+
+      alert("Pass purchased successfully!");
 
       return tx;
     } catch (err) {
@@ -133,7 +160,7 @@ export const useAccessPassSystem = () => {
 
       try {
         const event = await APSContract.getEventDetails(eventId);
-
+        console.log(event);
         return {
           price: event.price, // Keep as BigInt for calculations
           priceFormatted: event.price.map((p) =>
@@ -145,6 +172,7 @@ export const useAccessPassSystem = () => {
           active: event.active,
           name: event.eventName,
           passTypeNames: event.passTypeNames,
+          id: eventId,
         };
       } catch (err) {
         console.error("Error getting event details:", err);
@@ -358,7 +386,14 @@ export const useAccessPassSystem = () => {
       // Convert price to Wei if it's in Ether
       // const prices = _price.map((p) => ethers.parseEther(p.toString()));
 
-      console.log(_price);
+      console.log({
+        eventName,
+        _price,
+        duration,
+        _maxpass,
+        ipfsHash,
+        passTypeNames,
+      });
 
       const tx = await APSContract.createEvent(
         eventName,
@@ -374,6 +409,9 @@ export const useAccessPassSystem = () => {
       return tx;
     } catch (err) {
       setError(err.message);
+      console.error("Full error:", err);
+      console.log("Revert reason:", err.reason);
+      console.log("Transaction data:", err.transaction?.data);
       throw err;
     } finally {
       setLoading(false);

@@ -17,6 +17,8 @@ import MintToken from "../Dashboard/Components/Token/MintToken";
 import Event from "../Pages/Event";
 import EventDetails from "../Pages/EventDetails";
 import Allowance from "../Dashboard/Components/Token/Allowance";
+import Pass from "../Pages/Pass";
+import Treasury from "../Pages/Treasury";
 
 export const RouterWrapper = () => {
   const {
@@ -55,11 +57,11 @@ export const RouterWrapper = () => {
         },
         {
           path: "passes",
-          element: <div>Passes</div>,
+          element: <Pass />,
         },
         {
           path: "treasury",
-          element: <div>Treasury</div>,
+          element: <Treasury />,
         },
       ],
     },

@@ -8,7 +8,6 @@ import {
   Users,
   Shield,
   Zap,
-  CheckCircle,
   Wallet,
   Share2,
   Eye,
@@ -18,20 +17,45 @@ import { UseEvents } from "../hooks/backend";
 import { useAccessPassSystem } from "../hooks/useAccessPassSystem";
 import { Link } from "react-router-dom";
 import Loading from "../Components/Loading";
+import { UseWeb3 } from "../Context/Context";
 
 export default function Event() {
   const [isVisible, setIsVisible] = useState(false);
   const [hoveredEvent, setHoveredEvent] = useState(null);
+  const [passes, setPasses] = useState([]);
+  const [ownedEventIds, setOwnedEventIds] = useState([]);
   const { bevents } = UseEvents();
-  const { events, loading } = useAccessPassSystem();
+  const { events, loading, getUserPasses } = useAccessPassSystem();
+  const { account } = UseWeb3();
+
+  useEffect(() => {
+    const fetchpasses = async () => {
+      if (!account) return;
+      const res = await getUserPasses(account);
+      setPasses(res);
+    };
+    setIsVisible(true);
+    fetchpasses();
+  }, [account]);
+
   const margedEvents = events.map((item, index) => ({
     ...item,
     ...bevents[index],
   }));
 
   useEffect(() => {
-    setIsVisible(true);
-  }, []);
+    if (!passes || !events) return;
+
+    const matchedIds = events
+      .filter((event) =>
+        passes.some(
+          (pass) => pass.eventId === event.id || pass.eventId === event._id
+        )
+      )
+      .map((event) => event.id || event._id);
+
+    setOwnedEventIds(matchedIds);
+  }, [passes, events]);
 
   const speakers = [
     { name: "Vitalik Buterin", role: "Ethereum Founder", avatar: "VB" },
@@ -58,6 +82,7 @@ export default function Event() {
     { time: "16:00", title: "Demo: NFT Ticketing Systems", type: "demo" },
     { time: "17:30", title: "Closing & Awards", type: "general" },
   ];
+
   if (loading) {
     return <Loading />;
   }
@@ -209,78 +234,84 @@ export default function Event() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {margedEvents?.map((event, index) => (
-              <div
-                key={index}
-                className={`group relative bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 ${
-                  hoveredEvent === index ? "transform scale-105" : ""
-                }`}
-                onMouseEnter={() => setHoveredEvent(index)}
-                onMouseLeave={() => setHoveredEvent(null)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 opacity-10"></div>
+            {margedEvents?.map((event, index) => {
+              const isOwned = ownedEventIds.includes(event.id || event._id);
+              return (
+                <div
+                  key={index}
+                  className={`group relative bg-white/5 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 ${
+                    hoveredEvent === index ? "transform scale-105" : ""
+                  }`}
+                  onMouseEnter={() => setHoveredEvent(index)}
+                  onMouseLeave={() => setHoveredEvent(null)}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 opacity-10"></div>
 
-                {/* Event Image */}
-                {event?.image && (
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={`https://ipfs.io/ipfs/${event.ipfsHash}`}
-                      alt={event.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                  </div>
-                )}
+                  {/* Event Image */}
+                  {event?.ipfsHash && (
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={`https://ipfs.io/ipfs/${event.ipfsHash}`}
+                        alt={event.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-                <div className="relative p-8">
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-white mb-3">
-                      {event?.name}
-                    </h3>
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">
-                      {event?.description}
-                    </p>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-purple-400 mr-3" />
-                      <span className="text-gray-300 text-sm">
-                        {new Date(event.startDate).toLocaleDateString()} -{" "}
-                        {new Date(event.endDate).toLocaleDateString()}
-                      </span>
+                      {/* Category Badge */}
+                      {event.category && (
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-purple-600/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-medium">
+                            {event.category}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 text-blue-400 mr-3" />
-                      <span className="text-gray-300 text-sm">
-                        {event.duration / 86400} days
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 text-green-400 mr-3" />
-                      <span className="text-gray-300 text-sm">
-                        Max {event.maxPasses} passes
-                      </span>
-                    </div>
-                  </div>
+                  )}
 
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="text-3xl font-bold text-purple-400">
-                      {event.priceFormatted} APS
+                  <div className="relative p-8">
+                    <div className="mb-6">
+                      <h3 className="text-2xl font-bold text-white mb-3">
+                        {event?.name}
+                      </h3>
+                      <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+                        {event?.description}
+                      </p>
                     </div>
-                    <div className="text-sm text-gray-400">per pass</div>
-                  </div>
 
-                  <Link
-                    to={`/events/${event._id}/${event.id}`}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center"
-                  >
-                    <Ticket className="w-5 h-5 mr-2" />
-                    Get Pass
-                  </Link>
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 text-purple-400 mr-3" />
+                        <span className="text-gray-300 text-sm">
+                          {new Date(event.startDate).toLocaleDateString()} -{" "}
+                          {new Date(event.endDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="w-4 h-4 text-blue-400 mr-3" />
+                        <span className="text-gray-300 text-sm">
+                          {event.duration / 86400} days
+                        </span>
+                      </div>
+                    </div>
+
+                    {isOwned ? (
+                      <div className="w-full bg-gray-500 text-white py-3 rounded-xl font-semibold cursor-not-allowed flex items-center justify-center">
+                        <Ticket className="w-5 h-5 mr-2" />
+                        Already Purchased
+                      </div>
+                    ) : (
+                      <Link
+                        to={`/events/${event._id}/${event.id}`}
+                        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center justify-center"
+                      >
+                        <Ticket className="w-5 h-5 mr-2" />
+                        View Tiers & Get Pass
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
